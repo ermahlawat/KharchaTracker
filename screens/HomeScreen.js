@@ -27,7 +27,11 @@ const HomeScreen = ({ navigation }) => {
     setLoading(false);
   }, []);
 
-  useFocusEffect(fetchExpenses);
+  useFocusEffect(
+    useCallback(() => {
+      fetchExpenses();
+    }, [fetchExpenses])
+  );
 
   const currentMonth = format(new Date(), 'MMMM yyyy');
 

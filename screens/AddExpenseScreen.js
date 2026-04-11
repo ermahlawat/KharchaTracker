@@ -80,12 +80,14 @@ const AddExpenseScreen = ({ navigation }) => {
       />
 
       <Text style={styles.categoryLabel}>Category</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={styles.categoryScrollContent}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={styles.categoryScrollContent} accessibilityRole="tablist">
         {CATEGORIES.map((cat) => (
           <TouchableOpacity
             key={cat}
             style={[styles.chip, category === cat && styles.chipSelected]}
             onPress={() => setCategory(cat)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: category === cat }}
           >
             <Text style={[styles.chipText, category === cat && styles.chipTextSelected]}>{cat}</Text>
           </TouchableOpacity>
