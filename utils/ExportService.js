@@ -22,7 +22,7 @@ export const exportToPDF = async (transactions) => {
               <td>${t.date}</td>
               <td>${t.merchant}</td>
               <td>${t.category}</td>
-              <td class="amount">$${t.amount.toFixed(2)}</td>
+              <td class="amount">$${typeof t.amount === 'number' ? t.amount.toFixed(2) : parseFloat(t.amount || 0).toFixed(2)}</td>
             </tr>
           `).join('')}
         </table>

@@ -1,25 +1,36 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { supabase } from '../utils/supabase';
 import { X } from 'lucide-react-native';
+
+const CATEGORIES = ['Food', 'Groceries', 'Transport', 'Shopping', 'Health', 'Entertainment', 'Bills', 'Other'];
 
 const AddExpenseScreen = ({ navigation }) => {
   const [amount, setAmount] = useState('');
   const [merchant, setMerchant] = useState('');
+  const [category, setCategory] = useState('Shopping');
   const [loading, setLoading] = useState(false);
 
   const saveExpense = async () => {
-    if (!amount || !merchant) return;
-    setLoading(true);
+    const parsed = parseFloat(amount);
+    if (!amount || isNaN(parsed) || parsed <= 0) {
+      Alert.alert('Invalid Amount', 'Please enter a valid amount greater than zero.');
+      return;
+    }
+    if (!merchant.trim()) {
+      Alert.alert('Missing Merchant', 'Please enter a merchant name.');
+      return;
+    }
 
+    setLoading(true);
     const { error } = await supabase
       .from('expenses')
       .insert([
-        { 
-          amount: parseFloat(amount), 
-          merchant: merchant,
-          category: 'Shopping', // You can add a selector for this later
-          date: new Date().toISOString().split('T')[0] 
+        {
+          amount: parsed,
+          merchant: merchant.trim(),
+          category,
+          date: new Date().toISOString().split('T')[0],
         }
       ]);
 
@@ -27,13 +38,13 @@ const AddExpenseScreen = ({ navigation }) => {
     if (!error) {
       navigation.goBack();
     } else {
-      alert(error.message);
+      Alert.alert('Error', error.message);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
       <View style={styles.header}>
@@ -67,6 +78,21 @@ const AddExpenseScreen = ({ navigation }) => {
         onChangeText={setMerchant}
         placeholderTextColor="#8E8E93"
       />
+
+      <Text style={styles.categoryLabel}>Category</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll} contentContainerStyle={styles.categoryScrollContent} accessibilityRole="tablist">
+        {CATEGORIES.map((cat) => (
+          <TouchableOpacity
+            key={cat}
+            style={[styles.chip, category === cat && styles.chipSelected]}
+            onPress={() => setCategory(cat)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: category === cat }}
+          >
+            <Text style={[styles.chipText, category === cat && styles.chipTextSelected]}>{cat}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -78,7 +104,14 @@ const styles = StyleSheet.create({
   inputContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
   currencySymbol: { fontSize: 40, fontWeight: '300', color: '#8E8E93', marginRight: 8 },
   amountInput: { fontSize: 60, fontWeight: '700', color: '#000', textAlign: 'center' },
-  merchantInput: { fontSize: 18, borderBottomWidth: 1, borderBottomColor: '#F2F2F7', paddingVertical: 12, textAlign: 'center' }
+  merchantInput: { fontSize: 18, borderBottomWidth: 1, borderBottomColor: '#F2F2F7', paddingVertical: 12, textAlign: 'center', marginBottom: 24 },
+  categoryLabel: { fontSize: 13, fontWeight: '600', color: '#8E8E93', textTransform: 'uppercase', marginBottom: 12 },
+  categoryScroll: { flexGrow: 0 },
+  categoryScrollContent: { gap: 8, paddingRight: 8 },
+  chip: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, backgroundColor: '#F2F2F7' },
+  chipSelected: { backgroundColor: '#5A80B8' },
+  chipText: { fontSize: 15, color: '#3C3C43' },
+  chipTextSelected: { color: '#FFF', fontWeight: '600' },
 });
 
 export default AddExpenseScreen;
